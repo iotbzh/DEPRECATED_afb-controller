@@ -4,3 +4,6 @@
 [submodule "afb-utilities"]
 	path = afb-utilities
 	url = git@github.com:iotbzh/afb-utilities
+[submodule "ctl-utilities"]
+	path = ctl-utilities
+	url = git@github.com:fulup-bzh/ctl-utilities

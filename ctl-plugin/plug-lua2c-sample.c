@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ctl-binding.h"
+#include "ctrl-binding.h"
 
 #define MY_PLUGIN_MAGIC 987654321
 
@@ -44,8 +44,9 @@ STATIC const char* jsonToString (json_object *valueJ) {
 // Declare this sharelib as a Controller Plugin
 CTLP_REGISTER("MyCtlSamplePlugin");
 
+
 // Call at initialisation time
-PUBLIC CTLP_ONLOAD(label, version, info) {
+PUBLIC CTLP_ONLOAD(plugin, api) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)calloc (1, sizeof(MyPluginCtxT));
     pluginCtx->magic = MY_PLUGIN_MAGIC;
     pluginCtx->count = -1;
@@ -54,7 +55,9 @@ PUBLIC CTLP_ONLOAD(label, version, info) {
     return (void*)pluginCtx;
 }
 
-PUBLIC CTLP_CAPI (SamplePolicyInit, source, label, argsJ, queryJ, context) {
+CTLP_CAPI (CreateRampEffect, source, argsJ, UNUSED_ARG(queryJ)) 
+
+PUBLIC CTLP_CAPI (SamplePolicyInit, source, label, argsJ, queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
     if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
         AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:SamplePolicyInit (Hoops) Invalid Sample Plugin Context");
@@ -66,7 +69,7 @@ PUBLIC CTLP_CAPI (SamplePolicyInit, source, label, argsJ, queryJ, context) {
     return 0;
 }
 
-PUBLIC CTLP_CAPI (sampleControlMultimedia, source, label, argsJ,queryJ,context) {
+PUBLIC CTLP_CAPI (sampleControlMultimedia, source, label, argsJ,queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
 
     if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
@@ -79,7 +82,7 @@ PUBLIC CTLP_CAPI (sampleControlMultimedia, source, label, argsJ,queryJ,context) 
     return 0;
 }
 
-PUBLIC  CTLP_CAPI (sampleControlNavigation, source, label, argsJ, queryJ, context) {
+PUBLIC  CTLP_CAPI (sampleControlNavigation, source, label, argsJ, queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
 
     if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
@@ -92,7 +95,7 @@ PUBLIC  CTLP_CAPI (sampleControlNavigation, source, label, argsJ, queryJ, contex
     return 0;
 }
 
-PUBLIC  CTLP_CAPI (SampleControlEvent, source, label, argsJ, queryJ, context) {
+PUBLIC  CTLP_CAPI (SampleControlEvent, source, label, argsJ, queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
 
     if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {

@@ -16,22 +16,10 @@
 # limitations under the License.
 ###########################################################################
 
-# Include LUA only when requested
-if(CONTROL_SUPPORT_LUA)
-   message(STATUS "Notice: LUA Controler Support Selected")
-   set(CTL_LUA_SOURCE ctl-lua.c)
-   ADD_COMPILE_OPTIONS(-DCONTROL_SUPPORT_LUA)
-   ADD_COMPILE_OPTIONS(-DCONTROL_LUA_EVENT="luaevt")
-   ADD_COMPILE_OPTIONS(-DCONTROL_LUA_PATH="${CMAKE_SOURCE_DIR}/conf.d/project/lua.d:${CMAKE_INSTALL_PREFIX}/controller-plugins/ctl-lua.d")
-else(CONTROL_SUPPORT_LUA)
-   message(STATUS "Warning: LUA Without Support ")
-endif(CONTROL_SUPPORT_LUA)
-
-
-PROJECT_TARGET_ADD(audio-plugin-sample)
+PROJECT_TARGET_ADD(plug-capi-sample)
 
     # Define targets
-    ADD_LIBRARY(${TARGET_NAME} MODULE ctl-plugin-sample.c)
+    ADD_LIBRARY(${TARGET_NAME} MODULE plug-capi-sample.c)
 
     # Alsa Plugin properties
     SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES
@@ -43,10 +31,9 @@ PROJECT_TARGET_ADD(audio-plugin-sample)
     # Library dependencies (include updates automatically)
     TARGET_LINK_LIBRARIES(${TARGET_NAME}
         afb-utilities
+        ctl-utilities
         ${link_libraries}
     )
-
-    include_directories("../ctl-binding")
 
 
 
