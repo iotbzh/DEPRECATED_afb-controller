@@ -18,17 +18,30 @@
 
 PROJECT_TARGET_ADD(plug-capi-sample)
 
-    # Define targets
     ADD_LIBRARY(${TARGET_NAME} MODULE plug-capi-sample.c)
 
-    # Alsa Plugin properties
     SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES
 	PREFIX ${CTL_PLUGIN_PRE}
         SUFFIX ${CTL_PLUGIN_EXT}
         OUTPUT_NAME ${TARGET_NAME}
     )
 
-    # Library dependencies (include updates automatically)
+    TARGET_LINK_LIBRARIES(${TARGET_NAME}
+        afb-utilities
+        ctl-utilities
+        ${link_libraries}
+    )
+
+PROJECT_TARGET_ADD(plug-lua2c-sample)
+
+    ADD_LIBRARY(${TARGET_NAME} MODULE plug-lua2c-sample.c)
+
+    SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES
+	PREFIX ${CTL_PLUGIN_PRE}
+        SUFFIX ${CTL_PLUGIN_EXT}
+        OUTPUT_NAME ${TARGET_NAME}
+    )
+
     TARGET_LINK_LIBRARIES(${TARGET_NAME}
         afb-utilities
         ctl-utilities

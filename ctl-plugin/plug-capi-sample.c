@@ -24,6 +24,9 @@
 
 #include "ctl-plugin.h"
 
+// Declare this sharelib as a Controller Plugin
+CTLP_CAPI_REGISTER("CapiCtlSamplePlugin");
+
 // Ultra basic context control
 #define MY_PLUGIN_MAGIC 123456789
 
@@ -42,8 +45,6 @@ STATIC const char* jsonToString (json_object *valueJ) {
     return value;
 }
 
-// Declare this sharelib as a Controller Plugin
-CTLP_REGISTER("MyCtlSamplePlugin");
 
 
 // Call at initialisation time
@@ -59,7 +60,7 @@ PUBLIC CTLP_ONLOAD(plugin, handle) {
 
 
 PUBLIC CTLP_CAPI (SamplePolicyInit, source, argsJ, queryJ) {
-    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)pluginCtx;
+    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)source->context;
     if (!pluginCtx || pluginCtx->magic != MY_PLUGIN_MAGIC) {
         AFB_ApiError(source->api, "CONTROLLER-PLUGIN-SAMPLE:SamplePolicyInit (Hoops) Invalid Sample Plugin Context");
         return -1;

@@ -63,6 +63,8 @@ STATIC AFB_ApiVerbs CtrlApiVerbs[] = {
     { .verb = NULL} /* marker for end of the array */
 };
 
+#ifdef AFB_BINDING_PREV3
+
 STATIC int CtrlLoadStaticVerbs (afb_dynapi *dynapi, AFB_ApiVerbs *verbs) {
     int errcount=0;
     
@@ -74,7 +76,6 @@ STATIC int CtrlLoadStaticVerbs (afb_dynapi *dynapi, AFB_ApiVerbs *verbs) {
 };
 
 
-#ifdef AFB_DYNAPI_INFO
 // next generation dynamic API-V3 mode
 
 STATIC int CtrlLoadOneApi (void *cbdata, AFB_ApiT dynapi) {
@@ -153,10 +154,10 @@ OnErrorExit:
 
 
 
-#ifndef AFB_DYNAPI_INFO
+#ifndef AFB_BINDING_PREV3
 PUBLIC CtlConfigT *ctrlConfig=NULL;
 
-STATIC int CtrlBindingInit () {
+STATIC int CtrlV2Init () {
     // process config sessions
     int err = CtlConfigExec (ctrlConfig);
     
@@ -201,8 +202,8 @@ OnErrorExit:
 PUBLIC const struct afb_binding_v2 afbBindingV2 = {
     .api     = "ctl",
     .preinit = CtrlPreInit,
-    .init    = ConfigExec,
-    .verbs   = ApiVerbs,
+    .init    = CtrlV2Init,
+    .verbs   = CtrlApiVerbs,
     .onevent = CtrlDispatchV2Event,
 };
   

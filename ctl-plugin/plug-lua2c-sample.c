@@ -17,14 +17,17 @@
  * Sample plugin for Controller
  */
 
-
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 
-#include "ctrl-binding.h"
+#include "ctl-plugin.h"
 
-#define MY_PLUGIN_MAGIC 987654321
+// Declare this sharelib as a Controller Plugin
+CTLP_LUA_REGISTER("Lua2CSamplePlugin");
+
+// Ultra basic context control
+#define MY_PLUGIN_MAGIC 123456789
 
 typedef struct {
   int magic;
@@ -37,101 +40,35 @@ STATIC const char* jsonToString (json_object *valueJ) {
         value=json_object_get_string(valueJ);
     else
         value="NULL";
-
     return value;
 }
 
-// Declare this sharelib as a Controller Plugin
-CTLP_REGISTER("MyCtlSamplePlugin");
-
 
 // Call at initialisation time
-PUBLIC CTLP_ONLOAD(plugin, api) {
+PUBLIC CTLP_ONLOAD(plugin, handle) {
+    
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)calloc (1, sizeof(MyPluginCtxT));
     pluginCtx->magic = MY_PLUGIN_MAGIC;
     pluginCtx->count = -1;
 
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Onload label=%s version=%s info=%s", label, info, version);
+    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Onload label=%s info=%s", plugin->label, plugin->info);
     return (void*)pluginCtx;
 }
 
-CTLP_CAPI (CreateRampEffect, source, argsJ, UNUSED_ARG(queryJ)) 
-
-PUBLIC CTLP_CAPI (SamplePolicyInit, source, label, argsJ, queryJ) {
-    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
-    if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:SamplePolicyInit (Hoops) Invalid Sample Plugin Context");
-        return -1;
-    };
-
-    pluginCtx->count = 0;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Init label=%s args=%s\n", label, jsonToString(argsJ));
-    return 0;
-}
-
-PUBLIC CTLP_CAPI (sampleControlMultimedia, source, label, argsJ,queryJ) {
-    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
-
-    if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia (Hoops) Invalid Sample Plugin Context");
-        return -1;
-    };
-    pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia SamplePolicyCount action=%s args=%s query=%s count=%d"
-               , label, jsonToString(argsJ), jsonToString(queryJ), pluginCtx->count);
-    return 0;
-}
-
-PUBLIC  CTLP_CAPI (sampleControlNavigation, source, label, argsJ, queryJ) {
-    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
-
-    if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:sampleControlNavigation (Hoops) Invalid Sample Plugin Context");
-        return -1;
-    };
-    pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:sampleControlNavigation SamplePolicyCount action=%s args=%s query=%s count=%d"
-               ,label, jsonToString(argsJ), jsonToString(queryJ), pluginCtx->count);
-    return 0;
-}
-
-PUBLIC  CTLP_CAPI (SampleControlEvent, source, label, argsJ, queryJ) {
-    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
-
-    if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:cousampleControlMultimediant (Hoops) Invalid Sample Plugin Context");
-        return -1;
-    };
-    pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia SamplePolicyCount action=%s args=%s query=%s count=%d"
-               ,label, jsonToString(argsJ), jsonToString(queryJ), pluginCtx->count);
-    return 0;
-}
 
 // This function is a LUA function. Lua2CHelloWorld label should be declare in the "onload" section of JSON config file
-PUBLIC CTLP_LUA2C (Lua2cHelloWorld1, label, argsJ, context) {
-    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
+PUBLIC CTLP_LUA2C (Lua2cHelloWorld1, source, argsJ, responseJ) {
+    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)source->context;
 
-    if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
+    if (!pluginCtx || pluginCtx->magic != MY_PLUGIN_MAGIC) {
         AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:Lua2cHelloWorld1 (Hoops) Invalid Sample Plugin Context");
-        return -1;
+        return 1;
     };
     pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Lua2cHelloWorld1 SamplePolicyCount action=%s args=%s count=%d"
-               ,label, jsonToString(argsJ), pluginCtx->count);
-    return 0;
-}
-
-// This function is a LUA function. Lua2CHelloWorld label should be declare in the "onload" section of JSON config file
-PUBLIC CTLP_LUA2C (Lua2cHelloWorld2, label, argsJ, context) {
-    MyPluginCtxT *pluginCtx= (MyPluginCtxT*)context;
-
-    if (!context || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:Lua2cHelloWorld2 (Hoops) Invalid Sample Plugin Context");
-        return -1;
-    };
-    pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Lua2cHelloWorld2 SamplePolicyCount action=%s args=%s count=%d"
-               ,label, jsonToString(argsJ), pluginCtx->count);
+    AFB_ApiNotice (source->api, "CONTROLLER-PLUGIN-SAMPLE:Lua2cHelloWorld1 SamplePolicyCount action=%s args=%s count=%d", source->label, jsonToString(argsJ), pluginCtx->count);
+    
+    // build response as a json object
+    *responseJ = json_object_new_string("Response from Lua2C");
+    
     return 0;
 }
