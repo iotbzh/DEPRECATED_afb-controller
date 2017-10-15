@@ -30,7 +30,4 @@
 
 #include <ctl-config.h>
 
-STATIC int CtlBindingPreInit ();
-STATIC int CtlBindingInit ();
-
 #endif /* _CTL_BINDING_INCLUDE_ */

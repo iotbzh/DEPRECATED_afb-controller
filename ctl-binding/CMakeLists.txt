@@ -23,11 +23,9 @@ PROJECT_TARGET_ADD(afb-controller)
     # Define project Targets
     ADD_LIBRARY(${TARGET_NAME} MODULE ctrl-binding.c)
 
-    SET_OPENAPI_FILENAME("ctl-apidef")
-    # Binder exposes a unique public entry point
     SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES
 	PREFIX ""
-        LABELS "BINDINGV2"
+        LABELS "BINDING"
 	LINK_FLAGS  ${BINDINGS_LINK_FLAG}
         OUTPUT_NAME ${TARGET_NAME}
     )

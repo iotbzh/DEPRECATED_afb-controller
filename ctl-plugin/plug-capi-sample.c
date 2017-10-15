@@ -24,9 +24,8 @@
 
 #include "ctl-plugin.h"
 
-
-
-#define MY_PLUGIN_MAGIC 987654321
+// Ultra basic context control
+#define MY_PLUGIN_MAGIC 123456789
 
 typedef struct {
   int magic;
@@ -48,12 +47,13 @@ CTLP_REGISTER("MyCtlSamplePlugin");
 
 
 // Call at initialisation time
-PUBLIC CTLP_ONLOAD(plugin, api) {
+PUBLIC CTLP_ONLOAD(plugin, handle) {
+    
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)calloc (1, sizeof(MyPluginCtxT));
     pluginCtx->magic = MY_PLUGIN_MAGIC;
     pluginCtx->count = -1;
 
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Onload label=%s version=%s info=%s", plugin->label, plugin->info, plugin->version);
+    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Onload label=%s info=%s", plugin->label, plugin->info);
     return (void*)pluginCtx;
 }
 
@@ -61,24 +61,24 @@ PUBLIC CTLP_ONLOAD(plugin, api) {
 PUBLIC CTLP_CAPI (SamplePolicyInit, source, argsJ, queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)pluginCtx;
     if (!pluginCtx || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:SamplePolicyInit (Hoops) Invalid Sample Plugin Context");
+        AFB_ApiError(source->api, "CONTROLLER-PLUGIN-SAMPLE:SamplePolicyInit (Hoops) Invalid Sample Plugin Context");
         return -1;
     };
 
     pluginCtx->count = 0;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Init label=%s args=%s\n", source->label, jsonToString(argsJ));
+    AFB_ApiNotice (source->api, "CONTROLLER-PLUGIN-SAMPLE:Init label=%s args=%s query=%s\n", source->label, jsonToString(argsJ), jsonToString(queryJ));
     return 0;
 }
 
-PUBLIC CTLP_CAPI (sampleControlMultimedia, source, argsJ,queryJ) {
+PUBLIC CTLP_CAPI (sampleControlMultimedia, source, argsJ, queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)source->context;
 
     if (!pluginCtx || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia (Hoops) Invalid Sample Plugin Context");
+        AFB_ApiError(source->api, "CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia (Hoops) Invalid Sample Plugin Context");
         return -1;
     };
     pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia SamplePolicyCount action=%s args=%s query=%s count=%d"
+    AFB_ApiNotice (source->api, "CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia SamplePolicyCount action=%s args=%s query=%s count=%d"
                , source->label, jsonToString(argsJ), jsonToString(queryJ), pluginCtx->count);
     return 0;
 }
@@ -87,11 +87,11 @@ PUBLIC  CTLP_CAPI (sampleControlNavigation, source, argsJ, queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)source->context;
 
     if (!pluginCtx || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:sampleControlNavigation (Hoops) Invalid Sample Plugin Context");
+        AFB_ApiError(source->api, "CONTROLLER-PLUGIN-SAMPLE:sampleControlNavigation (Hoops) Invalid Sample Plugin Context");
         return -1;
     };
     pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:sampleControlNavigation SamplePolicyCount action=%s args=%s query=%s count=%d"
+    AFB_ApiNotice (source->api, "CONTROLLER-PLUGIN-SAMPLE:sampleControlNavigation SamplePolicyCount action=%s args=%s query=%s count=%d"
                ,source->label, jsonToString(argsJ), jsonToString(queryJ), pluginCtx->count);
     return 0;
 }
@@ -100,11 +100,11 @@ PUBLIC  CTLP_CAPI (SampleControlEvent, source, argsJ, queryJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)source->context;
 
     if (!pluginCtx || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:cousampleControlMultimediant (Hoops) Invalid Sample Plugin Context");
+        AFB_ApiError(source->api, "CONTROLLER-PLUGIN-SAMPLE:cousampleControlMultimediant (Hoops) Invalid Sample Plugin Context");
         return -1;
     };
     pluginCtx->count++;
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia SamplePolicyCount action=%s args=%s query=%s count=%d"
+    AFB_ApiNotice (source->api, "CONTROLLER-PLUGIN-SAMPLE:sampleControlMultimedia SamplePolicyCount action=%s args=%s query=%s count=%d"
                ,source->label, jsonToString(argsJ), jsonToString(queryJ), pluginCtx->count);
     return 0;
 }
