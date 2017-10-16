@@ -16,6 +16,8 @@
 # limitations under the License.
 ###########################################################################
 
+
+
 PROJECT_TARGET_ADD(plug-capi-sample)
 
     ADD_LIBRARY(${TARGET_NAME} MODULE plug-capi-sample.c)
@@ -32,6 +34,7 @@ PROJECT_TARGET_ADD(plug-capi-sample)
         ${link_libraries}
     )
 
+#add_compile_options(-E)
 PROJECT_TARGET_ADD(plug-lua2c-sample)
 
     ADD_LIBRARY(${TARGET_NAME} MODULE plug-lua2c-sample.c)

@@ -51,7 +51,7 @@ PUBLIC CTLP_ONLOAD(plugin, handle) {
     pluginCtx->magic = MY_PLUGIN_MAGIC;
     pluginCtx->count = -1;
 
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Onload label=%s info=%s", plugin->label, plugin->info);
+    AFB_ApiNotice (plugin->api, "CONTROLLER-PLUGIN-SAMPLE:Onload label=%s info=%s", plugin->label, plugin->info);
     return (void*)pluginCtx;
 }
 
@@ -61,7 +61,7 @@ PUBLIC CTLP_LUA2C (Lua2cHelloWorld1, source, argsJ, responseJ) {
     MyPluginCtxT *pluginCtx= (MyPluginCtxT*)source->context;
 
     if (!pluginCtx || pluginCtx->magic != MY_PLUGIN_MAGIC) {
-        AFB_ERROR("CONTROLLER-PLUGIN-SAMPLE:Lua2cHelloWorld1 (Hoops) Invalid Sample Plugin Context");
+        AFB_ApiError(source->api, "CONTROLLER-PLUGIN-SAMPLE:Lua2cHelloWorld1 (Hoops) Invalid Sample Plugin Context");
         return 1;
     };
     pluginCtx->count++;

@@ -121,16 +121,11 @@ set(COMPILE_OPTIONS
 -DCONTROL_DOSCRIPT_PRE="doscript"
 -DCONTROL_CONFIG_PRE="onload"
 -DCONTROL_CONFIG_POST="control"
--DCONTROL_CONFIG_PATH="${CMAKE_SOURCE_DIR}/conf.d/project/json.d:${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/json.d"
+-DCONTROL_CONFIG_PATH="${CMAKE_SOURCE_DIR}/conf.d/project:${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}"
 -DCTL_PLUGIN_MAGIC=2468013579
 -DCONTROL_PLUGIN_PATH="${CMAKE_BINARY_DIR}:${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/lib/controller-plugins:/usr/lib/afb/controller-plugins/ctlplug"
  CACHE STRING "Compilation flags")
-#set(C_COMPILE_OPTIONS "" CACHE STRING "Compilation flags for C language.")
-#set(CXX_COMPILE_OPTIONS "" CACHE STRING "Compilation flags for C++ language.")
-#set(PROFILING_COMPILE_OPTIONS -g -O0 -pg -Wp,-U_FORTIFY_SOURCE CACHE STRING "Compilation flags for PROFILING build type.")
-#set(DEBUG_COMPILE_OPTIONS -g -ggdb -Wp,-U_FORTIFY_SOURCE CACHE STRING "Compilation flags for DEBUG build type.")
-#set(CCOV_COMPILE_OPTIONS -g -O2 --coverage CACHE STRING "Compilation flags for CCOV build type.")
-#set(RELEASE_COMPILE_OPTIONS -g -O2 CACHE STRING "Compilation flags for RELEASE build type.")
+
 
 # Print a helper message when every thing is finished
 # ----------------------------------------------------

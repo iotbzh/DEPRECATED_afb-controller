@@ -1,0 +1,76 @@
+{
+    "$schema": "ToBeDone",
+    "metadata": {
+        "label": "demo-standalone-control",
+        "info": "Standalone Controller Config Sample",
+        "api": "ctrl",
+        "version": "1.0"
+    },
+    "plugins": [{
+            "label": "plugin-c-sample",
+            "info": "Simple demo C Plugin",
+            "basename": "ctl-plug-capi-sample"
+        }, {
+            "label": "sample-lua-sample",
+            "info": "Extend Lua commands in C",
+            "basename": "ctl-plug-lua2c-sample"
+        }],
+    "onload": [{
+            "label": "control-init",
+            "lua": {
+                "func": "_Sample_Controller_Init"
+            },
+            "args": {
+                "tag": "evt-tag",
+                "count": 1234,
+                "misc": "Bien le bonjours à vous"
+            }
+        }],
+    "controls":
+            [
+                {
+                    "label": "Button-Happy",
+                    "lua": {
+                        "func": "_Button_Happy"
+                    },
+                    "args": {
+                        "button": 5678
+                    }
+                }, {
+                    "label": "Button-Unhappy",
+                    "lua": {
+                        "func": "_Button_UnHappy"
+                    },
+                    "args": {
+                        "button": "abcd"
+                    }
+                }, {
+                    "label": "Start-Timer",
+                    "lua": {
+                        "func": "_Simple_Timer_Start"
+                    }
+                }
+            ],
+    "events":
+            [
+                {
+                    "label": "Event-1",
+                    "lua": {
+                        "func": "_Event_Received"
+                    },
+                    "args": {
+                        "evtname": "xxx"
+                    }
+                },
+                {
+                    "label": "Event-2",
+                    "lua": {
+                        "func": "_Event_Received"
+                    },
+                    "args": {
+                        "evtname": "yyy"
+                    }
+                }
+            ]
+}
+

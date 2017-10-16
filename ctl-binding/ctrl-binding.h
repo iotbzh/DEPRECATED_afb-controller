@@ -22,9 +22,6 @@
 #include <stdio.h>
 #include <alsa/asoundlib.h>
 
-#define AFB_BINDING_VERSION 2
-#include <afb/afb-binding.h>
-#include <json-c/json.h>
 #include <filescan-utils.h>
 #include <wrap-json.h>
 

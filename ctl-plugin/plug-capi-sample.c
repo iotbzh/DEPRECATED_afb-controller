@@ -54,7 +54,7 @@ PUBLIC CTLP_ONLOAD(plugin, handle) {
     pluginCtx->magic = MY_PLUGIN_MAGIC;
     pluginCtx->count = -1;
 
-    AFB_NOTICE ("CONTROLLER-PLUGIN-SAMPLE:Onload label=%s info=%s", plugin->label, plugin->info);
+    AFB_ApiNotice (plugin->api, "CONTROLLER-PLUGIN-SAMPLE:Onload label=%s info=%s", plugin->label, plugin->info);
     return (void*)pluginCtx;
 }
 

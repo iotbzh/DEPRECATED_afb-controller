@@ -20,7 +20,7 @@
 ##################################################
 # Control Policy Config file
 ##################################################
-PROJECT_TARGET_ADD(ctl-config.d)
+PROJECT_TARGET_ADD(ctl-json.d)
 
     file(GLOB XML_FILES "*.json")
 

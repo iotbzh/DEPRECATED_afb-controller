@@ -26,22 +26,22 @@
 
 
 -- Simple Happy(granted) Control
-function _Button_Happy(source, control, client)
+function _Button_Happy(source, args, query)
 
     -- print argument to make sure we understant what we get
-    printf ("[-- _Button_Happy --] source=%d control=%s client=%s", source, Dump_Table(client), Dump_Table(control))
+    printf ("[-- _Button_Happy --] source=%s args=%s query=%s", AFB:getlabel(source), Dump_Table(args), Dump_Table(query))
 
-    AFB:notice ("[-- _Button_Happy --] To Be Done")
-    return 0 -- control granted
+    AFB:notice (source, "[-- _Button_Happy --] To Be Done")
+    AFB:success(source, "I'm happy");
 end
 
 
--- Simple UnHappy(debu) Control
+-- Simple UnHappy(debug) Control
 function _Button_UnHappy(source, control, client)
 
     -- print argument to make sure we understant what we get
-    printf ("[-- _Button_UnHappy --] source=%d control=%s client=%s", source, Dump_Table(client), Dump_Table(control))
+    printf ("[-- _Button_Unhappy --] source=%s args=%s query=%s", AFB:getlabel(source), Dump_Table(args), Dump_Table(query))
 
-    AFB:error ("[-- _Button_UnHappy --] To Be Done")
-    return 1 -- control is refused
+    AFB:error (source, "[-- _Button_UnHappy --] To Be Done")
+    AFB:fail  (source, "I'm not happy");
 end

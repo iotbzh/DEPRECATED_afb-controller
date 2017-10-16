@@ -22,13 +22,13 @@
 _MyContext={}
 
 -- WARNING: call back are global and should start with '_'
-function _Timer_Test_CB (timer, context)
+function _Timer_Test_CB (source, context)
 
-   local evtinfo= AFB:timerget(timer)
-   printf ("[-- _Timer_Test_C --] evtInfo=%s", Dump_Table(evtinfo))
+   local evtinfo = AFB:timerget(_MyContext["timer"])
+   printf ("[-- _Timer_Test_CB --] evtinfo=%s context=%s", Dump_Table(evtinfo), Dump_Table(context))
 
    --send an event an event with count as value
-   AFB:evtpush (_MyContext["event"], {["label"]= evtinfo["label"], ["count"]=evtinfo["count"], ["info"]=context["info"]})
+   AFB:evtpush (source, _MyContext["event"], {["label"]= evtinfo["label"], ["count"]=evtinfo["count"], ["info"]=context["info"]})
 
    -- note when timerCB return!=0 timer is kill
    return 0
@@ -36,39 +36,42 @@ function _Timer_Test_CB (timer, context)
 end
 
 -- sendback event depending on count and delay
-function _Simple_Timer_Test (request, client)
-
+function _Simple_Timer_Start (source, args, query)
+    local error
     local context = {
         ["info"]="My 1st private Event",
     }
 
     -- if event does not exit create it now.
     if (_MyContext["event"] == nil) then
-      _MyContext["event"]= AFB:evtmake(client["label"])
+      _MyContext["event"]= AFB:evtmake(source, "MyTimerEvent")
     end
 
     -- if delay not defined default is 5s
-    if (client["delay"]==nil) then client["delay"]=5000 end
+    if (query["delay"]==nil) then query["delay"]=5000 end
 
     -- if count is not defined default is 10
-    if (client["count"]==nil) then client["count"]=10 end
+    if (query["count"]==nil) then query["count"]=10 end
 
-    -- we could use directly client but it is a sample
+    -- we could use directly query but it is a sample
     local myTimer = {
-       ["label"]=client["label"],
-       ["delay"]=client["delay"],
-       ["count"]=client["count"],
+       ["label"]=query["label"],
+       ["delay"]=query["delay"],
+       ["count"]=query["count"],
     }
-    AFB:notice ("Test_Timer myTimer=%s", myTimer)
+    AFB:notice (source, "Test_Timer myTimer=%s", myTimer)
 
     -- subscribe to event
-    AFB:subscribe (request, _MyContext["event"])
+    AFB:subscribe (source, _MyContext["event"])
 
     -- settimer take a table with delay+count as input (count==0 means infinite)
-    AFB:timerset (myTimer, "_Timer_Test_CB", context)
+    error, _MyContext["timer"] = AFB:timerset (source, myTimer, "_Timer_Test_CB", context)
 
-    -- nothing special to return send back
-    AFB:success (request, myTimer)
+    -- return status
+    if (error == nil) then
+        AFB:success (source, myTimer)
+    else
+        AFB:fail (source, "Fail to Create Timer")
+    end    
 
-    return 0
 end

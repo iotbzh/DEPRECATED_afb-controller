@@ -31,11 +31,11 @@ _Global_Context={}
 --]]
 function _Sample_Controller_Init(source, control)
 
-    printf ("[-- Sample_Controller_Init --] source=%d control=%s", source, Dump_Table(control))
+    printf ("[-- Sample_Controller_Init --] action=%s control=%s", AFB:getlabel(source), Dump_Table(control))
 
     -- if no argument return now
-    if (control==nil or control["zzzz"]==nil) then
-        printf ("[-- Sample_Controller_Init --]  no event name given")
+    if (control==nil or control["tag"]==nil) then
+        printf ("[-- Sample_Controller_Init --]  (in lua error) no event tag given")
         return
     end
 
@@ -43,6 +43,6 @@ function _Sample_Controller_Init(source, control)
     _Global_Context["counter"]=0
 
     -- just for fun create an event
-    _Global_Context["event"]=AFB:evtmake(control["zzzz"])
+    _Global_Context["event"]=AFB:evtmake(source, control["tag"])
 
 end

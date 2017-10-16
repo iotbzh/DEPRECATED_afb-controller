@@ -23,13 +23,14 @@
 #include "ctrl-binding.h"
 
 
-// STATIC CtlConfigT *ctrlConfig=NULL;
+// default api to print log when apihandle not avaliable
+PUBLIC afb_dynapi *AFB_default;
 
 STATIC void ctrlapi_ping (AFB_ReqT request) {
     static int count=0;
 
     count++;
-    AFB_NOTICE ("Controller:ping count=%d", count);
+    AFB_ReqNotice (request, "Controller:ping count=%d", count);
     AFB_ReqSucess(request,json_object_new_int(count), NULL);
 
     return;
@@ -39,7 +40,7 @@ STATIC void ctrlapi_request (AFB_ReqT request) {
     static int count=0;
 
     count++;
-    AFB_NOTICE ("Controller:request count=%d", count);
+    AFB_ReqNotice (request, "Controller:request count=%d", count);
     AFB_ReqSucess(request,json_object_new_int(count), NULL);
 
     return;
@@ -49,8 +50,8 @@ STATIC void ctrlapi_request (AFB_ReqT request) {
 static CtlSectionT ctrlSections[]= {
     [CTL_SECTION_PLUGIN] ={.key="plugins" , .loadCB= PluginConfig},
     [CTL_SECTION_ONLOAD] ={.key="onload"  , .loadCB= OnloadConfig},
-    [CTL_SECTION_CONTROL]={.key="control" , .loadCB= ControlConfig},
-    [CTL_SECTION_EVENT]  ={.key="event"   , .loadCB= EventConfig},
+    [CTL_SECTION_CONTROL]={.key="controls", .loadCB= ControlConfig},
+    [CTL_SECTION_EVENT]  ={.key="events"  , .loadCB= EventConfig},
     
     [CTL_SECTION_ENDTAG] ={.key=NULL}
 };
@@ -65,50 +66,71 @@ STATIC AFB_ApiVerbs CtrlApiVerbs[] = {
 
 #ifdef AFB_BINDING_PREV3
 
-STATIC int CtrlLoadStaticVerbs (afb_dynapi *dynapi, AFB_ApiVerbs *verbs) {
+STATIC int CtrlLoadStaticVerbs (afb_dynapi *apiHandle, AFB_ApiVerbs *verbs) {
     int errcount=0;
     
     for (int idx=0; verbs[idx].verb; idx++) {
-        errcount+= afb_dynapi_add_verb(dynapi, CtrlApiVerbs[idx].verb, NULL, CtrlApiVerbs[idx].callback, (void*)&CtrlApiVerbs[idx], CtrlApiVerbs[idx].auth, 0);
+        errcount+= afb_dynapi_add_verb(apiHandle, CtrlApiVerbs[idx].verb, NULL, CtrlApiVerbs[idx].callback, (void*)&CtrlApiVerbs[idx], CtrlApiVerbs[idx].auth, 0);
     }
     
     return errcount;
 };
 
 
+STATIC int CtrlInitOneApi (AFB_ApiT apiHandle) {
+    
+    // retrieve section config from api handle
+    CtlConfigT *ctrlConfig = (CtlConfigT*) afb_dynapi_get_userdata(apiHandle);  
+    int err = CtlConfigExec (apiHandle, ctrlConfig);
+    
+    return err;
+}
+    
 // next generation dynamic API-V3 mode
 
-STATIC int CtrlLoadOneApi (void *cbdata, AFB_ApiT dynapi) {
+STATIC int CtrlLoadOneApi (void *cbdata, AFB_ApiT apiHandle) {
     CtlConfigT *ctrlConfig = (CtlConfigT*) cbdata;
+    
+    // save closure as api's data context
+    afb_dynapi_set_userdata(apiHandle, ctrlConfig);
 
     // add static controls verbs
-    int err = CtrlLoadStaticVerbs (dynapi, CtrlApiVerbs);
+    int err = CtrlLoadStaticVerbs (apiHandle, CtrlApiVerbs);
     if (err) {
-        AFB_ERROR("CtrlLoadSection fail to register static V2 verbs");
+        AFB_ApiError(apiHandle, "CtrlLoadSection fail to register static V2 verbs");
         goto OnErrorExit;
     }
     
     // load section for corresponding API
-    err= CtlLoadSections(ctrlConfig, ctrlSections, dynapi);
+    err= CtlLoadSections(apiHandle, ctrlConfig, ctrlSections);
     
     // declare an event event manager for this API;
-    afb_dynapi_on_event(dynapi, CtrlDispatchApiEvent);
+    afb_dynapi_on_event(apiHandle, CtrlDispatchApiEvent);
     
+    // init API function (does not receive user closure ???
+    afb_dynapi_on_init(apiHandle, CtrlInitOneApi);
+    
+    afb_dynapi_seal(apiHandle);
     return err;
     
 OnErrorExit:
     return 1;
 }
 
-PUBLIC int afbBindingVdyn(afb_dynapi *dynapi) {
+
+PUBLIC int afbBindingVdyn(afb_dynapi *apiHandle) {
     int status=0;
+    
+    AFB_default = apiHandle;
    
     const char *dirList= getenv("CONTROL_CONFIG_PATH");
     if (!dirList) dirList=CONTROL_CONFIG_PATH;
     
+    AFB_ApiNotice (apiHandle, "Controller in afbBindingVdyn");
+    
     json_object *configJ=CtlConfigScan (dirList, "control-");
     if (!configJ) {
-        AFB_ERROR("CtlAfbBindingVdyn: No control-* config found invalid JSON %s ", dirList);
+        AFB_ApiError(apiHandle, "CtlAfbBindingVdyn: No control-* config found invalid JSON %s ", dirList);
         goto OnErrorExit;
     }
     
@@ -120,7 +142,7 @@ PUBLIC int afbBindingVdyn(afb_dynapi *dynapi) {
         
         int err = wrap_json_unpack(entryJ, "{s:s, s:s !}", "fullpath", &fullpath, "filename", &filename);
         if (err) {
-            AFB_ERROR("CtrlBindingDyn HOOPs invalid JSON entry= %s", json_object_get_string(entryJ));
+            AFB_ApiError(apiHandle, "CtrlBindingDyn HOOPs invalid JSON entry= %s", json_object_get_string(entryJ));
             goto OnErrorExit;
         }
 
@@ -130,20 +152,21 @@ PUBLIC int afbBindingVdyn(afb_dynapi *dynapi) {
         strncat(filepath, filename, sizeof (filepath));
 
         // create one API per file
-        CtlConfigT *ctrlConfig = CtlLoadMetaData (filepath);
+        CtlConfigT *ctrlConfig = CtlLoadMetaData (apiHandle, filepath);
         if (!ctrlConfig) {
-            AFB_ERROR("CtrlBindingDyn No valid control config file in:\n-- %s", filepath);
+            AFB_ApiError(apiHandle, "CtrlBindingDyn No valid control config file in:\n-- %s", filepath);
             goto OnErrorExit;
         }
         
         if (!ctrlConfig->api) {
-            AFB_ERROR("CtrlBindingDyn API Missing from metadata in:\n-- %s", filepath);
+            AFB_ApiError(apiHandle, "CtrlBindingDyn API Missing from metadata in:\n-- %s", filepath);
             goto OnErrorExit;
         }
-        // create one API per config file
-        status += afb_dynapi_new_api(dynapi, ctrlConfig->api, ctrlConfig->info, CtrlLoadOneApi, ctrlConfig);
+        // create one API per config file (Pre-V3 return code ToBeChanged)
+        int rc = afb_dynapi_new_api(apiHandle, ctrlConfig->api, ctrlConfig->info, CtrlLoadOneApi, ctrlConfig);
+        if (rc < 0) status++;
     }
- 
+    
     return status;
     
 OnErrorExit:
@@ -152,14 +175,12 @@ OnErrorExit:
 
 #endif
 
-
-
 #ifndef AFB_BINDING_PREV3
 PUBLIC CtlConfigT *ctrlConfig=NULL;
 
 STATIC int CtrlV2Init () {
     // process config sessions
-    int err = CtlConfigExec (ctrlConfig);
+    int err = CtlConfigExec (NULL, ctrlConfig);
     
     return err;   
 }
@@ -172,21 +193,21 @@ STATIC int CtrlPreInit() {
     const char *configPath = CtlConfigSearch (dirList, "control-");
     
     if (!configPath) {
-        AFB_ERROR("CtlPreInit: No control-* config found invalid JSON %s ", dirList);
+        AFB_ApiError(apiHandle, "CtlPreInit: No control-* config found invalid JSON %s ", dirList);
         goto OnErrorExit;
     }
     
     // create one API per file
     ctrlConfig = CtlLoadMetaData (configPath);
     if (!ctrlConfig) {
-        AFB_ERROR("CtrlPreInit No valid control config file in:\n-- %s", configPath);
+        AFB_ApiError(apiHandle, "CtrlPreInit No valid control config file in:\n-- %s", configPath);
         goto OnErrorExit;
     }
 
     if (ctrlConfig->api) {
         int err = afb_daemon_rename_api(ctrlConfig->api);
         if (err) {
-            AFB_ERROR("Fail to rename api to:%s", ctrlConfig->api);
+            AFB_ApiError(apiHandle, "Fail to rename api to:%s", ctrlConfig->api);
             goto OnErrorExit;
         }
     }
